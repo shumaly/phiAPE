@@ -1,0 +1,83 @@
+{
+  "configurations": [
+    {
+      "archive": "uea",
+      "datasets": 30,
+      "dimension": 32,
+      "metadata_path": "uea/d32/phiAPE_run_metadata.json",
+      "metadata_sha256": "4a6a82e0d44eac26d38914b6247aa58b210a09929b02027f9a63222e9d523a9c",
+      "results_path": "uea/d32/phiAPE_runs.csv",
+      "results_sha256": "68f7e39e9444c45bc9b03d04c8277ac91180c7cee818badcc080dd77e7e998fb",
+      "rows": 2400,
+      "source_results_sha256": "8abad8ee04cdbece015d3abee0f26acdd2697f0af9803bb83bd5808b08988e80"
+    },
+    {
+      "archive": "uea",
+      "datasets": 30,
+      "dimension": 128,
+      "metadata_path": "uea/d128/phiAPE_run_metadata.json",
+      "metadata_sha256": "0091469e234677a5dcca54bd75d3b5ecfaf22c25f79bf0b607813f0697db4230",
+      "results_path": "uea/d128/phiAPE_runs.csv",
+      "results_sha256": "a8d5d52984b4fad87cb34c5bec9c6f315fceed87cbb45777d42e9c42df983e61",
+      "rows": 2400,
+      "source_results_sha256": "c0c65ee333fe6195324844bd6842bf7f21b5f9c97316d3838ba8197febe964c7"
+    },
+    {
+      "archive": "ucr",
+      "datasets": 128,
+      "dimension": 32,
+      "metadata_path": "ucr/d32/phiAPE_run_metadata.json",
+      "metadata_sha256": "e87e936909bc9c16470bd2df6e2d8c41267a1004cd89faf31367e9f6a5518e83",
+      "results_path": "ucr/d32/phiAPE_runs.csv",
+      "results_sha256": "f349367c961d1b6ced3cc26eb20c042cab93ac16800835bbaf19391851de5d97",
+      "rows": 10240,
+      "source_results_sha256": "28662bca3cc2a5ba6889984a9b05c51246070d0fd56e97966572d87f9cdcc27b"
+    },
+    {
+      "archive": "ucr",
+      "datasets": 128,
+      "dimension": 128,
+      "metadata_path": "ucr/d128/phiAPE_run_metadata.json",
+      "metadata_sha256": "56c286726b9b4581349dda87c428c49d78f1640e90a1df6247216b9f0b2bfe7b",
+      "results_path": "ucr/d128/phiAPE_runs.csv",
+      "results_sha256": "eff8e5a93168b5f5b9e4d2a62643e0a6c8172cb2e4f20a12a332867a2519d34e",
+      "rows": 10240,
+      "source_results_sha256": "e2e6de9b990267e160980c409e5b59444655048f895983dcfd6a164e97f52667"
+    }
+  ],
+  "description": "Immutable seed-level results used to produce the publication tables and statistical tests.",
+  "methods": [
+    "No-APE",
+    "Learned APE",
+    "Sin-APE",
+    "tAPE",
+    "phiAPE"
+  ],
+  "normalization": "Only the five manuscript methods were retained. Public method labels were standardized, numerical metric strings were preserved, and test_correct was reconstructed exactly from test_accuracy and test_cases.",
+  "protocol": {
+    "attention_heads": 8,
+    "batch_size": 64,
+    "dropout": 0.2,
+    "early_stopping_patience": 32,
+    "encoder_layers": 3,
+    "epochs": 200,
+    "feedforward_dimension": 256,
+    "first_model_seed": 2026,
+    "gradient_clip_norm": 4.0,
+    "learning_rate": 0.001,
+    "maximum_length": 512,
+    "repeats": 16,
+    "scale_embedding": true,
+    "split_seed": 2026,
+    "validation_fraction": 0.2,
+    "validation_label_smoothing": 0.05,
+    "weight_decay": 0.0001
+  },
+  "schema_version": 1,
+  "source_environment": {
+    "cuda": "11.4",
+    "cudnn": "8.2.4",
+    "python": "3.9",
+    "torch": "1.13.0"
+  }
+}
