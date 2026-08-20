@@ -7,7 +7,7 @@ seed-level reference results, statistical analysis, and publication-report
 generation.
 
 <p align="center">
-  <img src="assets/phiAPE_positional_similarity.png" alt="Positional similarity produced by Sin-APE, tAPE, and phiAPE across sequence lengths and embedding dimensions" width="50%">
+  <img src="assets/phiAPE_positional_similarity.png" alt="Positional similarity produced by Sin-APE, tAPE, and phiAPE across sequence lengths and embedding dimensions" width="70%">
 </p>
 
 *Figure 1. Unnormalized positional similarity across the complete signed
