@@ -1,0 +1,40 @@
+{
+  "archive": "uea",
+  "dimension": 32,
+  "environment": {
+    "cuda": "11.4",
+    "cudnn": "8.2.4",
+    "device": "cuda",
+    "gpu_name": "not recorded",
+    "other_dependency_versions": "not recorded",
+    "python": "3.9",
+    "source": "archived publication run",
+    "torch": "1.13.0"
+  },
+  "methods": [
+    "No-APE",
+    "Learned APE",
+    "Sin-APE",
+    "tAPE",
+    "phiAPE"
+  ],
+  "protocol": {
+    "attention_heads": 8,
+    "batch_size": 64,
+    "dropout": 0.2,
+    "early_stopping_patience": 32,
+    "encoder_layers": 3,
+    "epochs": 200,
+    "feedforward_dimension": 256,
+    "first_model_seed": 2026,
+    "gradient_clip_norm": 4.0,
+    "learning_rate": 0.001,
+    "maximum_length": 512,
+    "repeats": 16,
+    "scale_embedding": true,
+    "split_seed": 2026,
+    "validation_fraction": 0.2,
+    "validation_label_smoothing": 0.05,
+    "weight_decay": 0.0001
+  }
+}
