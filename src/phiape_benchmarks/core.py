@@ -13,6 +13,7 @@ from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 
 from .protocol import PROTOCOL
+from .rotary_attention import ROTARY_METHODS, RotaryMultiheadAttention
 
 
 FrequencyBuilder = Callable[[int, int, torch.device], torch.Tensor]
@@ -123,9 +124,14 @@ class TSTBatchNormEncoderLayer(nn.Module):
         num_heads: int = PROTOCOL.attention_heads,
         dim_feedforward: int = PROTOCOL.feedforward_dimension,
         dropout: float = PROTOCOL.dropout,
+        rotary_method: str | None = None,
     ) -> None:
         super().__init__()
-        self.self_attn = nn.MultiheadAttention(d_model, num_heads, dropout=dropout)
+        self.self_attn = (
+            nn.MultiheadAttention(d_model, num_heads, dropout=dropout)
+            if rotary_method is None else
+            RotaryMultiheadAttention(d_model, num_heads, dropout=dropout, method=rotary_method)
+        )
         self.linear1 = nn.Linear(d_model, dim_feedforward)
         self.dropout = nn.Dropout(dropout)
         self.linear2 = nn.Linear(dim_feedforward, d_model)
@@ -176,7 +182,7 @@ class TSTClassifier(nn.Module):
         else:
             self.learnable_encoding = None
         self.positional_dropout = nn.Dropout(PROTOCOL.dropout)
-        layer = TSTBatchNormEncoderLayer(d_model=d_model)
+        layer = TSTBatchNormEncoderLayer(d_model=d_model, rotary_method=method if method in ROTARY_METHODS else None)
         self.encoder = nn.TransformerEncoder(layer, num_layers=PROTOCOL.encoder_layers)
         self.activation = nn.GELU()
         self.output_dropout = nn.Dropout(PROTOCOL.dropout)
@@ -189,7 +195,7 @@ class TSTClassifier(nn.Module):
             hidden = hidden * math.sqrt(self.d_model)
         if self.method == "Learned APE":
             hidden = hidden + self.learnable_encoding.unsqueeze(1)
-        elif self.method != "No-APE":
+        elif self.method not in ("No-APE", *ROTARY_METHODS):
             encoding = positional_encoding(
                 self.sequence_length,
                 self.d_model,

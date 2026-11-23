@@ -45,5 +45,7 @@ def test_complete_report_and_workbook_schema(tmp_path, monkeypatch) -> None:
     assert set(pd.ExcelFile(workbook).sheet_names) == expected_sheets
     report_directory = output_root / "reports"
     assert len(list(report_directory.glob("*.png"))) == 4
-    assert len(pd.read_csv(report_directory / "phiAPE_wilcoxon_holm.csv")) == 40
+    pairwise = pd.read_csv(report_directory / "phiAPE_wilcoxon_holm.csv")
+    assert len(pairwise) == 40 and pairwise.alternative.eq("two-sided").all()
+    assert sorted(p.name for p in report_directory.glob("*.tex")) == ["phiAPE_benchmark_summary.tex"]
     assert pd.read_csv(report_directory / "phiAPE_friedman_tests.csv")["reject_equal_performance"].all()

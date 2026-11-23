@@ -16,6 +16,7 @@ from .runner import (
     run_configuration,
     validate_metadata,
 )
+from .rotary_attention import ROTARY_METHODS
 from .statistics import compute_analysis, validate_runs
 
 
@@ -66,6 +67,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     run_all_parser = commands.add_parser("run-all", help="Run all four published configurations.")
     _add_storage_arguments(run_all_parser)
+    for command in (run_parser, run_all_parser):
+        command.add_argument("--rotary", action="store_true", help="Train the Table 2 rotary pair in OUTPUT_ROOT/rotary.")
+
+    table = commands.add_parser("table2", help="Generate the standalone RoPE/phiRoPE comparison.")
+    inputs = table.add_mutually_exclusive_group()
+    inputs.add_argument("--input", type=Path, default=Path("rotary_reference_results"))
+    inputs.add_argument("--v28-root", type=Path, help="Read the four original v28 experiment CSVs directly.")
+    table.add_argument("--report-dir", type=Path, default=Path("outputs/reports"))
 
     check_parser = commands.add_parser("check", help="Validate complete results without writing files.")
     check_parser.add_argument("--input", type=Path, default=Path("reference_results"))
@@ -84,7 +93,7 @@ def _validate_selection(args: argparse.Namespace, parser: argparse.ArgumentParse
         if unknown:
             parser.error(f"unknown datasets: {sorted(unknown)}")
     if args.methods:
-        unknown = set(args.methods) - set(METHODS)
+        unknown = set(args.methods) - set(ROTARY_METHODS if args.rotary else METHODS)
         if unknown:
             parser.error(f"unknown methods: {sorted(unknown)}")
     if args.seeds:
@@ -123,10 +132,15 @@ def main(argv: list[str] | None = None) -> None:
             selected_datasets=args.datasets,
             selected_methods=args.methods,
             selected_seeds=args.seeds,
+            rotary=args.rotary,
         )
     elif args.command == "run-all":
         output_root = args.output_root.expanduser().resolve()
-        run_all(output_root, args.data_root.expanduser().resolve())
+        run_all(output_root, args.data_root.expanduser().resolve(), rotary=args.rotary)
+    elif args.command == "table2":
+        from .table2 import generate_table2
+
+        generate_table2(args.input, args.report_dir, args.v28_root)
     elif args.command == "check":
         check_all(args.input.expanduser().resolve())
     elif args.command == "report":

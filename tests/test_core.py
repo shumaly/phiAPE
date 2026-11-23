@@ -54,7 +54,7 @@ def test_split_is_deterministic_and_standardization_uses_training_only() -> None
 
 def test_model_forward_for_all_methods() -> None:
     batch = torch.randn(3, 12, 2)
-    for method in ("No-APE", "Learned APE", "Sin-APE", "tAPE", "phiAPE"):
+    for method in ("No-APE", "Learned APE", "Sin-APE", "tAPE", "phiAPE", "RoPE", "phiRoPE"):
         model = TSTClassifier(2, 12, 4, method, d_model=32)
         model.eval()
         output = model(batch)

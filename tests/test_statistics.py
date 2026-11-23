@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -38,6 +40,14 @@ def synthetic_runs(datasets: tuple[str, ...], dimension: int = 32) -> pd.DataFra
 
 def test_holm_step_down() -> None:
     assert np.allclose(holm_adjust([0.01, 0.04, 0.03]), [0.03, 0.06, 0.06])
+
+
+def test_archived_additive_decision_matches_paper() -> None:
+    reference = Path(__file__).resolve().parents[1] / "reference_results/uea/d128/phiAPE_runs.csv"
+    pairs = compute_analysis(pd.read_csv(reference), "uea", 128).wilcoxon_holm
+    pair = pairs.set_index(["higher_ranked_method", "lower_ranked_method"]).loc[("tAPE", "Learned APE")]
+    assert pair.p_value_holm == pytest.approx(0.0770023986697197, abs=1e-10)
+    assert not pair.significant_at_0_05
 
 
 def test_exact_count_aggregation_and_statistical_coverage(monkeypatch) -> None:

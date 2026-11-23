@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "methods": [
+    "RoPE",
+    "phiRoPE"
+  ],
+  "protocol": {
+    "epochs": 200,
+    "repeats": 16,
+    "first_model_seed": 2026,
+    "split_seed": 2026,
+    "validation_fraction": 0.2,
+    "batch_size": 64,
+    "early_stopping_patience": 32,
+    "maximum_length": 512,
+    "encoder_layers": 3,
+    "attention_heads": 8,
+    "feedforward_dimension": 256,
+    "dropout": 0.2,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "gradient_clip_norm": 4.0,
+    "validation_label_smoothing": 0.05,
+    "scale_embedding": true
+  },
+  "source": "HPC-APE v28 TST RoPE",
+  "implementation_sha256": "b3a7058a8a537721b692ceb37d648a9869c1f3f7fd80a095fe998c14cf2a150f",
+  "configuration_sha256": "81c8b94293567df3ff899dc8243ba7414195afe8a9d1e6121d67d0e6da42ba8e",
+  "configurations": [
+    {
+      "archive": "uea",
+      "dimension": 32,
+      "datasets": 30,
+      "rows": 960,
+      "source_path": "uea/outputs32/outputs/32_sqrt_embedding/natops_ape_results.csv",
+      "source_results_sha256": "a2f6eced77ff6fcaef9effc8d9eb405f8e3825b168ee021c5dca1a306e061f0b",
+      "results_path": "uea/d32/phiAPE_runs.csv",
+      "results_sha256": "b29ecfcf6e9aee87553155b3d48816f3c5941bb61414612404f9a18c8a6d5887",
+      "metadata_path": "uea/d32/phiAPE_run_metadata.json",
+      "metadata_sha256": "6131f1022e3ce81a16a047768e1d7f2f808549201ea4ca3f025fe524fdcc31a4"
+    },
+    {
+      "archive": "uea",
+      "dimension": 128,
+      "datasets": 30,
+      "rows": 960,
+      "source_path": "uea/outputs128/outputs/128_sqrt_embedding/natops_ape_results.csv",
+      "source_results_sha256": "edc69ea1ebd2f33f942e7f5215e64d1e3b167a6a3b0a405baf1215e088423c0c",
+      "results_path": "uea/d128/phiAPE_runs.csv",
+      "results_sha256": "65f03bae8b9f56cdfa7e215026479060b9e4236676d062bd69417cc75fa16bc1",
+      "metadata_path": "uea/d128/phiAPE_run_metadata.json",
+      "metadata_sha256": "3e2a95890f20a72d8435fed6ed5fb0ae6ae0351ad18e60c83a397751b12154f2"
+    },
+    {
+      "archive": "ucr",
+      "dimension": 32,
+      "datasets": 128,
+      "rows": 4096,
+      "source_path": "ucr/outputs32/outputs/32_sqrt_embedding/ucr_ape_results.csv",
+      "source_results_sha256": "ef005a8ff45f9ec13769d6c70ba7d30a9fd1a6378088d1ed08e5582f26d0590a",
+      "results_path": "ucr/d32/phiAPE_runs.csv",
+      "results_sha256": "7b7703c70a2ef7ee04bd71561ebbbc3929153136aaf4afb737c7fdb272cb4034",
+      "metadata_path": "ucr/d32/phiAPE_run_metadata.json",
+      "metadata_sha256": "f67138a02f730ab579721dd8c211983b7ec07b51011e30d05264deab301bc71e"
+    },
+    {
+      "archive": "ucr",
+      "dimension": 128,
+      "datasets": 128,
+      "rows": 4096,
+      "source_path": "ucr/outputs128/outputs/128_sqrt_embedding/ucr_ape_results.csv",
+      "source_results_sha256": "0d8b47b61d45369f7a0ad3d62c00918f8e4554dce215fa34bed032da72cb40f3",
+      "results_path": "ucr/d128/phiAPE_runs.csv",
+      "results_sha256": "4c6fa573e1795ad070c93c36a51bf05194071f8128992247892a5c6a2270a4d1",
+      "metadata_path": "ucr/d128/phiAPE_run_metadata.json",
+      "metadata_sha256": "aefc2db8c37d097d16187fa01b39b36149d57e854b167070f00fd955e87cf439"
+    }
+  ]
+}

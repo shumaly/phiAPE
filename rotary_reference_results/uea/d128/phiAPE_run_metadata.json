@@ -1,0 +1,30 @@
+{
+  "archive": "uea",
+  "dimension": 128,
+  "methods": [
+    "RoPE",
+    "phiRoPE"
+  ],
+  "protocol": {
+    "epochs": 200,
+    "repeats": 16,
+    "first_model_seed": 2026,
+    "split_seed": 2026,
+    "validation_fraction": 0.2,
+    "batch_size": 64,
+    "early_stopping_patience": 32,
+    "maximum_length": 512,
+    "encoder_layers": 3,
+    "attention_heads": 8,
+    "feedforward_dimension": 256,
+    "dropout": 0.2,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "gradient_clip_norm": 4.0,
+    "validation_label_smoothing": 0.05,
+    "scale_embedding": true
+  },
+  "environment": {
+    "source": "archived v28 runs"
+  }
+}

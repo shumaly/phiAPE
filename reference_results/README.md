@@ -1,21 +1,23 @@
-# Reference results
+# Additive reference results
 
-This directory contains the immutable seed-level results used for the
-publication tables and statistical analyses. It covers UEA and UCR at embedding
-dimensions 32 and 128, with five methods and 16 paired repeats per dataset.
+These files contain the 25,280 seed-level TST results for No-APE, Learned
+APE, Sin-APE, tAPE, and phiAPE. They cover the 30 UEA and 128 UCR datasets
+at embedding widths 32 and 128, with 16 paired repeats per setting.
 
-`manifest.json` records the protocol, source environment, row and dataset
-counts, hashes of the normalized files, and hashes of the source result tables.
-The normalized CSVs preserve the archived metric strings, use the public method
-names, and add the exact integer `test_correct` count for every run.
+[manifest.json](manifest.json) records the protocol, original software
+environment, expected dataset and row counts, and SHA-256 hashes of both
+the source result tables and the bundled files. The bundled CSVs preserve
+the archived metric values, use the public method names, and include the
+reconstructed integer `test_correct` count for every run.
 
-Validate the files and reproduce the publication reports from the repository
-root:
+From the repository root, run
 
 ```bash
-phiape-benchmarks check --input reference_results
-phiape-benchmarks report --input reference_results --report-dir outputs/reports
+phiape-benchmarks check
+phiape-benchmarks report
 ```
 
-The reporting command never modifies these reference files. Generated reports
-are excluded from version control.
+The report reproduces Table 1 and Figure 4 using the manuscript's two-sided
+paired Wilcoxon tests with Holm adjustment over ten pairs per archive and
+embedding width. Table 2 is generated separately from the
+[rotary reference results](../rotary_reference_results/README.md).

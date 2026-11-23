@@ -38,11 +38,26 @@ def holm_adjust(p_values: list[float]) -> list[float]:
     return adjusted.tolist()
 
 
+def paired_wilcoxon(differences: np.ndarray) -> tuple[float, float, str]:
+    """Use the manuscript's two-sided Wilcoxon rule for paired differences."""
+    values = np.round(np.asarray(differences, dtype=float), 12)
+    if values.ndim != 1 or not values.size or not np.isfinite(values).all():
+        raise ValueError("Wilcoxon differences must be a finite, nonempty vector")
+    if not np.any(values):
+        return 0.0, 1.0, "all-zero"
+    exact = values.size <= 50 and np.all(values != 0) and np.unique(np.abs(values)).size == values.size
+    method = "exact" if exact else "approx"
+    result = stats.wilcoxon(values, alternative="two-sided", zero_method="wilcox",
+                            correction=False, method=method)
+    return float(result.statistic), float(result.pvalue), method
+
+
 def validate_runs(
     runs: pd.DataFrame,
     archive: str,
     dimension: int,
     complete: bool = True,
+    methods: tuple[str, ...] = METHODS,
 ) -> pd.DataFrame:
     missing = set(RESULT_COLUMNS) - set(runs.columns)
     if missing:
@@ -54,7 +69,7 @@ def validate_runs(
         raise ValueError("result table contains missing values")
     if selected.duplicated(["dataset", "positional_encoding", "repeat"]).any():
         raise ValueError("duplicate dataset/method/repeat result keys")
-    if set(selected["positional_encoding"]) - set(METHODS):
+    if set(selected["positional_encoding"]) - set(methods):
         raise ValueError("result table contains unsupported methods")
     integer_columns = (
         "train_cases",
@@ -124,8 +139,11 @@ def validate_runs(
             raise ValueError(
                 f"dataset coverage mismatch; missing={missing_datasets}, extra={extra_datasets}"
             )
-        if set(selected["positional_encoding"].astype(str)) != set(METHODS):
-            raise ValueError("complete results must contain all five methods")
+        if set(selected["positional_encoding"].astype(str)) != set(methods):
+            raise ValueError("complete results must contain every requested method")
+        coverage = selected.groupby("dataset")["positional_encoding"].nunique()
+        if not coverage.eq(len(methods)).all():
+            raise ValueError("incomplete method coverage within dataset")
         grouped = selected.groupby(["dataset", "positional_encoding"], sort=True)
         if not grouped.size().eq(PROTOCOL.repeats).all():
             raise ValueError("every dataset/method cell must contain 16 repeats")
@@ -140,13 +158,13 @@ def validate_runs(
     return selected
 
 
-def reconstruct_scores(runs: pd.DataFrame, archive: str, dimension: int) -> tuple[pd.DataFrame, pd.DataFrame]:
-    selected = validate_runs(runs, archive, dimension, complete=True)
+def reconstruct_scores(runs: pd.DataFrame, archive: str, dimension: int, methods: tuple[str, ...] = METHODS) -> tuple[pd.DataFrame, pd.DataFrame]:
+    selected = validate_runs(runs, archive, dimension, complete=True, methods=methods)
     grouped = selected.groupby(["dataset", "positional_encoding"], sort=True)
-    correct_totals = grouped["test_correct"].sum().unstack().loc[:, list(METHODS)]
-    denominators = grouped["test_cases"].sum().unstack().loc[:, list(METHODS)]
+    correct_totals = grouped["test_correct"].sum().unstack().loc[:, list(methods)]
+    denominators = grouped["test_cases"].sum().unstack().loc[:, list(methods)]
     scores = (correct_totals / denominators).sort_index()
-    direct = grouped["test_accuracy"].mean().unstack().loc[scores.index, list(METHODS)]
+    direct = grouped["test_accuracy"].mean().unstack().loc[scores.index, list(methods)]
     if not np.allclose(scores, direct, rtol=0.0, atol=5e-15):
         raise ValueError("count-reconstructed means differ from direct means")
     long = (
@@ -167,10 +185,9 @@ def compute_analysis(runs: pd.DataFrame, archive: str, dimension: int) -> Analys
     ordered_methods = average_ranks.sort_values(kind="stable").index.tolist()
     pairwise_rows: list[dict[str, object]] = []
     for higher_ranked, lower_ranked in itertools.combinations(ordered_methods, 2):
-        differences = np.round(
-            (scores[higher_ranked] - scores[lower_ranked]).to_numpy(dtype=float), 12
+        statistic, p_value, method = paired_wilcoxon(
+            (scores[higher_ranked] - scores[lower_ranked]).to_numpy()
         )
-        result = stats.wilcoxon(differences, alternative="greater", zero_method="wilcox")
         pairwise_rows.append(
             {
                 "archive": archive.upper(),
@@ -178,8 +195,11 @@ def compute_analysis(runs: pd.DataFrame, archive: str, dimension: int) -> Analys
                 "datasets": len(scores),
                 "higher_ranked_method": higher_ranked,
                 "lower_ranked_method": lower_ranked,
-                "wilcoxon_statistic": float(result.statistic),
-                "p_value_raw": float(result.pvalue),
+                "wilcoxon_statistic": statistic,
+                "alternative": "two-sided",
+                "p_value_method": method,
+                "statistic_definition": "min(W+, W-)",
+                "p_value_raw": p_value,
             }
         )
     adjusted = holm_adjust([float(row["p_value_raw"]) for row in pairwise_rows])

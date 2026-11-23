@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from itertools import combinations
 from pathlib import Path
 
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/phiape-matplotlib")
@@ -15,7 +16,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from aeon.visualisation import plot_critical_difference
 
 from .protocol import ARCHIVES, DIMENSIONS, METHODS, PROTOCOL
 from .reference import validate_reference_manifest
@@ -32,11 +32,6 @@ METHOD_FILE_NAMES = {
 }
 
 
-def latex_escape(value: str) -> str:
-    replacements = {"&": r"\&", "%": r"\%", "_": r"\_", "#": r"\#"}
-    return "".join(replacements.get(character, character) for character in value)
-
-
 def _wide_means(analyses: dict[tuple[str, int], Analysis], archive: str) -> pd.DataFrame:
     pieces = []
     for dimension in DIMENSIONS:
@@ -46,81 +41,56 @@ def _wide_means(analyses: dict[tuple[str, int], Analysis], archive: str) -> pd.D
     return pd.concat(pieces, axis=1).reset_index()
 
 
-def write_accuracy_longtable(archive: str, means: pd.DataFrame, destination: Path) -> None:
-    description = "multivariate UEA" if archive == "uea" else "univariate UCR"
-    lines = [
-        r"\begingroup",
-        r"\fontsize{7}{8}\selectfont",
-        r"\setlength{\tabcolsep}{1.6pt}",
-        r"\renewcommand{\arraystretch}{1.00}",
-        r"\begin{longtable}{@{}>{\raggedright\arraybackslash}p{4.6cm}*{10}{r}@{}}",
-        (
-            rf"\caption{{Mean test accuracy (\%) over 16 repeats on the {description} archive "
-            rf"({len(means)} datasets). The best mean within each dataset and embedding dimension "
-            rf"is shown in bold.}}\label{{tab:{archive}-full-accuracy}}\\"
-        ),
-        r"\toprule",
-        r"& \multicolumn{5}{c}{$d=32$} & \multicolumn{5}{c}{$d=128$} \\",
-        r"\cmidrule(lr){2-6}\cmidrule(l){7-11}",
-        r"Dataset & No-APE & \shortstack{Learned\\APE} & Sin-APE & tAPE & phiAPE & No-APE & \shortstack{Learned\\APE} & Sin-APE & tAPE & phiAPE \\",
-        r"\midrule",
-        r"\endfirsthead",
-        r"\multicolumn{11}{r}{\small Table~\thetable\ continued}\\",
-        r"\toprule",
-        r"& \multicolumn{5}{c}{$d=32$} & \multicolumn{5}{c}{$d=128$} \\",
-        r"\cmidrule(lr){2-6}\cmidrule(l){7-11}",
-        r"Dataset & No-APE & \shortstack{Learned\\APE} & Sin-APE & tAPE & phiAPE & No-APE & \shortstack{Learned\\APE} & Sin-APE & tAPE & phiAPE \\",
-        r"\midrule",
-        r"\endhead",
-        r"\midrule",
-        r"\multicolumn{11}{r}{\small Continued on next page}\\",
-        r"\endfoot",
-        r"\bottomrule",
-        r"\endlastfoot",
-    ]
-    for _, row in means.iterrows():
-        values: list[str] = []
-        for dimension in DIMENSIONS:
-            columns = [f"{METHOD_FILE_NAMES[method]}_d{dimension}_accuracy" for method in METHODS]
-            maximum = max(float(row[column]) for column in columns)
-            for column in columns:
-                value = float(row[column])
-                rendered = f"{100.0 * value:.2f}"
-                values.append(rf"\textbf{{{rendered}}}" if np.isclose(value, maximum, atol=1e-15) else rendered)
-        lines.append(f"{latex_escape(str(row['dataset']))} & " + " & ".join(values) + r" \\")
-    lines.extend([r"\end{longtable}", r"\endgroup", ""])
-    destination.write_text("\n".join(lines), encoding="utf-8")
-
-
 def _latex_p_value(value: float) -> str:
-    return r"$<0.001$" if value < 0.001 else f"{value:.4f}"
+    if value < 0.001:
+        return r"$<0.001$"
+    return f"{value:.4f}"
 
 
 def write_summary_latex(summary: pd.DataFrame, destination: Path) -> None:
+    """Write the compact WSDM main-paper benchmark table."""
     lines = [
         r"\begin{table}[t]",
         r"    \centering",
-        r"    \caption{Cross-dataset comparison of the five selected positional encodings across the complete UEA (30 datasets) and UCR (128 datasets) archives. Dataset scores are means over 16 repeats. Mean accuracy is the unweighted mean of the dataset-level scores and is descriptive only. The highest mean accuracy in each archive--dimension setting is bold. Best/ties counts unique best scores and ties for the best score among all five methods. For each comparator row, W/T/L counts datasets on which phiAPE has a higher/equal/lower mean. $p_{\mathrm{Holm}}$ is the one-sided paired Wilcoxon signed-rank $p$-value after Holm adjustment across all ten pairwise comparisons within that archive--dimension setting. Lower average rank is better.}",
+        (
+            r"    \caption{Cross-dataset comparison of the five additive "
+            r"conditions across the complete UEA (30 datasets) and UCR (128 datasets) "
+            r"archives. Dataset scores are means over 16 repeats. Mean accuracy is the "
+            r"unweighted mean of the dataset-level scores and is descriptive only. The "
+            r"highest mean accuracy in each archive--dimension setting is bold. Best/ties "
+            r"counts unique best scores and ties for the best score among all five methods. "
+            r"For each comparator row, W/T/L counts datasets on which phiAPE has a "
+            r"higher/equal/lower mean. $p_{\mathrm{Holm}}$ is the two-sided paired "
+            r"Wilcoxon signed-rank $p$-value after Holm adjustment across all ten pairwise "
+            r"comparisons within that archive--dimension setting. Lower average rank is better.}"
+        ),
         r"    \label{tab:benchmark-summary}",
         r"    \small",
         r"    \setlength{\tabcolsep}{2pt}",
         r"    \begin{tabular}{@{}lrrrrr@{}}",
         r"        \toprule",
-        r"        Method & \shortstack{Mean\\acc. (\%)} & \shortstack{Avg.\\rank} & \shortstack{Best/\\ties} & W/T/L & $p_{\mathrm{Holm}}$ \\",
+        (
+            r"        Method & \shortstack{Mean\\acc. (\%)} & \shortstack{Avg.\\rank} "
+            r"& \shortstack{Best/\\ties} & W/T/L & $p_{\mathrm{Holm}}$ \\"
+        ),
         r"        \midrule",
     ]
+
     groups = list(summary.groupby(["archive", "dimension"], sort=False))
-    for group_number, ((archive, dimension), group) in enumerate(groups):
-        lines.append(rf"        \multicolumn{{6}}{{@{{}}l}}{{\textit{{{archive}, $d={dimension}$}}}} \\")
+    for group_index, ((archive, dimension), group) in enumerate(groups):
+        lines.append(
+            rf"        \multicolumn{{6}}{{@{{}}l}}{{\textit{{{archive}, $d={dimension}$}}}} \\"
+        )
         highest_mean = float(group["macro_mean_accuracy_descriptive"].max())
         best_rank = float(group["average_rank"].min())
         most_wins = int(group["outright_best"].max())
         for _, row in group.iterrows():
             method = str(row["method"])
-            method_text = method
             mean_text = f"{100.0 * float(row['macro_mean_accuracy_descriptive']):.2f}"
             rank_text = f"{float(row['average_rank']):.2f}"
             wins_text = f"{int(row['outright_best'])}/{int(row['tied_best'])}"
+            method_text = method
+
             if np.isclose(float(row["macro_mean_accuracy_descriptive"]), highest_mean):
                 mean_text = rf"\textbf{{{mean_text}}}"
             if np.isclose(float(row["average_rank"]), best_rank):
@@ -128,40 +98,86 @@ def write_summary_latex(summary: pd.DataFrame, destination: Path) -> None:
                 rank_text = rf"\textbf{{{rank_text}}}"
             if int(row["outright_best"]) == most_wins:
                 wins_text = rf"\textbf{{{wins_text}}}"
+
             if method == "phiAPE":
-                pairwise_text, p_text = "--", "--"
+                pairwise_text = "--"
+                p_text = "--"
             else:
                 pairwise_text = (
-                    f"{int(row['phiAPE_pairwise_wins'])}/{int(row['phiAPE_pairwise_ties'])}/"
+                    f"{int(row['phiAPE_pairwise_wins'])}/"
+                    f"{int(row['phiAPE_pairwise_ties'])}/"
                     f"{int(row['phiAPE_pairwise_losses'])}"
                 )
                 p_text = _latex_p_value(float(row["phiAPE_vs_method_p_value_holm"]))
+
             lines.append(
-                f"        {method_text} & {mean_text} & {rank_text} & {wins_text} & "
-                f"{pairwise_text} & {p_text} " + r"\\"
+                f"        {method_text} & {mean_text} & {rank_text} & "
+                f"{wins_text} & {pairwise_text} & {p_text} " + r"\\"
             )
-        if group_number != len(groups) - 1:
+        if group_index != len(groups) - 1:
             lines.append(r"        \addlinespace[2pt]")
-    lines.extend([r"        \bottomrule", r"    \end{tabular}", r"\end{table}", ""])
+
+    lines.extend(
+        [
+            r"        \bottomrule",
+            r"    \end{tabular}",
+            r"\end{table}",
+            "",
+        ]
+    )
     destination.write_text("\n".join(lines), encoding="utf-8")
 
 
-def write_diagram(scores: pd.DataFrame, destination: Path) -> None:
-    labels = scores.columns.astype(str).tolist()
-    figure, _, _ = plot_critical_difference(
-        scores=scores.to_numpy(dtype=float),
-        labels=labels,
-        lower_better=False,
-        test="wilcoxon",
-        correction="holm",
-        alpha=0.05,
-        width=max(8.5, 2.3 * len(labels)),
-        textspace=1.8,
-        reverse=True,
-        return_p_values=True,
-    )
-    figure.savefig(destination, dpi=300, bbox_inches="tight")
-    plt.close(figure)
+def write_diagram(analysis: Analysis, archive: str, dimension: int, destination: Path) -> None:
+    """Draw maximal nonsignificant cliques from Table 1's adjusted decisions."""
+    ranks = analysis.method_summary.set_index("method").average_rank.sort_values(kind="stable")
+    labels = ranks.index.tolist()
+    significant = {
+        frozenset((row.higher_ranked_method, row.lower_ranked_method)): row.significant_at_0_05
+        for row in analysis.wilcoxon_holm.itertuples()
+    }
+    groups = []
+    for size in range(2, len(labels) + 1):
+        for members in combinations(labels, size):
+            if all(not significant[frozenset(pair)] for pair in combinations(members, 2)):
+                groups.append(frozenset(members))
+    cliques = [group for group in groups if not any(group < other for other in groups)]
+    cliques.sort(key=lambda group: (min(ranks[name] for name in group), -len(group)))
+
+    # Retain the original rank-axis direction (rank 1 on the right).
+    fig, ax = plt.subplots(figsize=(11.5, 2.45))
+    ax.set_xlim(5.85, 0.15)
+    ax.set_ylim(-1.55, 0.55)
+    ax.axis("off")
+    ax.plot([1, 5], [0.28, 0.28], color="black", linewidth=1.2)
+    for tick in np.arange(1, 5.01, 0.5):
+        ax.plot([tick, tick], [0.28, 0.39 if tick.is_integer() else 0.34], color="black", linewidth=0.9)
+        if tick.is_integer():
+            ax.text(tick, 0.43, str(int(tick)), ha="center", va="bottom", fontsize=11)
+    for index, name in enumerate(labels):
+        right = index < 3
+        row = index if right else len(labels) - index - 1
+        y = -0.65 - 0.30 * row
+        rank = float(ranks[name])
+        endpoint = 0.86 if right else 5.14
+        ax.plot([rank, rank, endpoint], [0.28, y, y], color="0.45", linewidth=0.7)
+        ax.text(endpoint - 0.07 if right else endpoint + 0.07, y, name,
+                ha="left" if right else "right", va="center", fontsize=13)
+        ax.text(endpoint + 0.07 if right else endpoint - 0.07, y + 0.09, f"{rank:.4f}",
+                ha="right" if right else "left", va="bottom", fontsize=9)
+    for index, group in enumerate(cliques):
+        y = 0.09 - index * 0.14
+        xs = [float(ranks[name]) for name in group]
+        ax.plot([min(xs), max(xs)], [y, y], color="black", linewidth=2.1)
+        for x in xs:
+            ax.plot([x, x], [y - 0.025, y + 0.025], color="black", linewidth=1.0)
+    fig.savefig(destination, dpi=300, bbox_inches="tight", pad_inches=0.06)
+    plt.close(fig)
+    audit = {"archive": archive, "dimension": dimension,
+             "alternative": "two-sided", "correction": "Holm step-down over all ten pairs",
+             "average_ranks": ranks.to_dict(),
+             "maximal_nonsignificant_cliques": [[name for name in labels if name in group] for group in cliques]}
+    destination.with_suffix(".json").write_text(json.dumps(audit, indent=2) + "\n", encoding="utf-8")
 
 
 def _protocol_sheet(input_root: Path) -> pd.DataFrame:
@@ -212,15 +228,10 @@ def generate_report(input_root: Path, report_directory: Path | None = None) -> P
     for archive in ARCHIVES:
         means = _wide_means(analyses, archive)
         means.to_csv(report_directory / f"phiAPE_{archive}_accuracy_table.csv", index=False)
-        write_accuracy_longtable(
-            archive,
-            means,
-            report_directory / f"phiAPE_{archive}_accuracy_table.tex",
-        )
     write_summary_latex(method_summary, report_directory / "phiAPE_benchmark_summary.tex")
     for (archive, dimension), analysis in analyses.items():
         write_diagram(
-            analysis.scores,
+            analysis, archive.upper(), dimension,
             report_directory / f"phiAPE_{archive}_d{dimension}_wilcoxon_holm.png",
         )
 

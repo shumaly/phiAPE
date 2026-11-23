@@ -24,6 +24,7 @@ from .core import (
 from .data import dataset_names, load_dataset
 from .protocol import ARCHIVES, DIMENSIONS, METHODS, PROTOCOL, RESULT_COLUMNS
 from .statistics import validate_runs
+from .rotary_attention import ROTARY_METHODS
 
 
 def configuration_directory(output_root: Path, archive: str, dimension: int) -> Path:
@@ -69,11 +70,11 @@ def environment_metadata(device: torch.device) -> dict[str, object]:
     }
 
 
-def expected_metadata(archive: str, dimension: int, device: torch.device) -> dict[str, object]:
+def expected_metadata(archive: str, dimension: int, device: torch.device, methods: tuple[str, ...] = METHODS) -> dict[str, object]:
     return {
         "archive": archive,
         "dimension": dimension,
-        "methods": list(METHODS),
+        "methods": list(methods),
         "protocol": PROTOCOL.to_dict(),
         "environment": environment_metadata(device),
     }
@@ -88,14 +89,14 @@ def _validate_existing_metadata(path: Path, expected: dict[str, object]) -> None
             raise ValueError(f"existing output metadata has incompatible {key}: {path}")
 
 
-def validate_metadata(path: Path, archive: str, dimension: int) -> dict[str, object]:
+def validate_metadata(path: Path, archive: str, dimension: int, methods: tuple[str, ...] = METHODS) -> dict[str, object]:
     if not path.exists():
         raise FileNotFoundError(f"missing run metadata: {path}")
     metadata = json.loads(path.read_text(encoding="utf-8"))
     expected_static = {
         "archive": archive,
         "dimension": dimension,
-        "methods": list(METHODS),
+        "methods": list(methods),
         "protocol": PROTOCOL.to_dict(),
     }
     for key, expected_value in expected_static.items():
@@ -143,6 +144,7 @@ def run_configuration(
     selected_datasets: tuple[str, ...] | None = None,
     selected_methods: tuple[str, ...] | None = None,
     selected_seeds: tuple[int, ...] | None = None,
+    rotary: bool = False,
 ) -> Path:
     archive = archive.lower()
     if archive not in ARCHIVES:
@@ -151,10 +153,13 @@ def run_configuration(
         raise ValueError(f"dimension must be one of {DIMENSIONS}")
     available_datasets = dataset_names(archive)
     datasets = selected_datasets or available_datasets
-    methods = selected_methods or METHODS
+    family = ROTARY_METHODS if rotary else METHODS
+    if rotary:
+        output_root = output_root / "rotary"
+    methods = selected_methods or family
     seeds = selected_seeds or PROTOCOL.model_seeds
     unknown_datasets = set(datasets) - set(available_datasets)
-    unknown_methods = set(methods) - set(METHODS)
+    unknown_methods = set(methods) - set(family)
     unknown_seeds = set(seeds) - set(PROTOCOL.model_seeds)
     if unknown_datasets:
         raise ValueError(f"unknown {archive.upper()} datasets: {sorted(unknown_datasets)}")
@@ -166,13 +171,13 @@ def run_configuration(
     device = choose_device()
     result_file = results_path(output_root, archive, dimension)
     metadata_file = metadata_path(output_root, archive, dimension)
-    metadata = expected_metadata(archive, dimension, device)
+    metadata = expected_metadata(archive, dimension, device, family)
     _validate_existing_metadata(metadata_file, metadata)
     if not metadata_file.exists():
         _write_json(metadata_file, metadata)
     results = load_results(result_file)
     if not results.empty:
-        validate_runs(results, archive, dimension, complete=False)
+        validate_runs(results, archive, dimension, complete=False, methods=family)
     completed = set(
         zip(
             results["dataset"].astype(str),
@@ -242,7 +247,7 @@ def run_configuration(
     return result_file
 
 
-def run_all(output_root: Path, data_root: Path) -> None:
+def run_all(output_root: Path, data_root: Path, rotary: bool = False) -> None:
     for archive in ARCHIVES:
         for dimension in DIMENSIONS:
-            run_configuration(archive, dimension, output_root, data_root)
+            run_configuration(archive, dimension, output_root, data_root, rotary=rotary)

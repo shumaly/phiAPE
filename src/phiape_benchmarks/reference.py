@@ -32,7 +32,7 @@ def _contained_file(root: Path, relative_path: object) -> Path:
     return candidate
 
 
-def validate_reference_manifest(root: Path) -> dict[str, object] | None:
+def validate_reference_manifest(root: Path, methods: tuple[str, ...] = METHODS) -> dict[str, object] | None:
     """Validate a reference manifest when one is present at ``root``."""
 
     manifest_path = root / "manifest.json"
@@ -41,7 +41,7 @@ def validate_reference_manifest(root: Path) -> dict[str, object] | None:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     if manifest.get("schema_version") != 1:
         raise ValueError(f"unsupported reference manifest schema: {manifest_path}")
-    if manifest.get("methods") != list(METHODS):
+    if manifest.get("methods") != list(methods):
         raise ValueError(f"reference manifest has incompatible methods: {manifest_path}")
     if manifest.get("protocol") != PROTOCOL.to_dict():
         raise ValueError(f"reference manifest has an incompatible protocol: {manifest_path}")
