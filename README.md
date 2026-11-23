@@ -52,21 +52,48 @@ computed values. Each configuration uses a common color scale across methods.
 
 </details>
 
-## Install
+## Installation and experiment environments
 
-Run the commands from the repository root. Python 3.12 was used to verify
-the reporting commands. Install a PyTorch build suitable for your hardware
-before installing the package if you need a specific CUDA build.
+### Reproduce the paper tables on your machine
+
+The validated reporting setup uses Python 3.12.7, NumPy 1.26.4,
+pandas 2.2.3, and SciPy 1.13.1. From the repository root, create an
+environment with Python 3.12 and install the versions in
+[requirements.txt](requirements.txt).
 
 ```bash
-python -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate
+python -m pip install -r requirements.txt
 python -m pip install -e .
 ```
 
-For the analysis versions used to verify Tables 1 and 2, run
-`python -m pip install "numpy==1.26.4" "pandas==2.2.3" "scipy==1.13.1"`
-in the environment.
+On Windows, use `py -3.12 -m venv .venv` and activate with
+`.venv\Scripts\Activate.ps1` in PowerShell. The reporting commands run on CPU.
+For training, you can install a PyTorch 2.6.0 build for your CPU or CUDA
+platform before installing the requirements. Install `gdown` if the UEA
+loader needs to download a dataset from Google Drive.
+
+### Original training environment
+
+The archived additive runs came from the v7 UEA and v9 UCR TST experiments.
+The rotary runs came from v28. The original Raven jobs used Python 3.9 with
+the following modules:
+
+```bash
+module load cuda/11.4
+module load anaconda/3/2021.11
+module load pytorch/gpu-cuda-11.4/1.13.0
+module load cudnn/8.2.4
+```
+
+The experiment setup created a virtual environment with
+`python -m venv --system-site-packages` to inherit the module's PyTorch.
+[requirements-hpc.txt](requirements-hpc.txt) records the union of the
+original UEA and UCR dependency lists. Most versions were left unpinned in
+those lists, so the module stack and requirements document the original
+setup without claiming an exact environment lock. Use the Python 3.12 setup
+above to reproduce the published analysis from the archived runs.
 
 ## Reproduce Table 2 from the archived runs
 
@@ -190,14 +217,17 @@ seed-level inputs before calculating results.
 To run the checks locally, install the test extra with
 `python -m pip install -e ".[test]"` and run `pytest`.
 
+## License
+
+The repository software is licensed under the [MIT License](LICENSE).
+The ACM paper is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
 ## Citation
 
 Sajjad Shumaly and Mahsa Salehi. 2027. *Rethinking Absolute Positional
 Encoding in Transformers for Time-Series Modeling*. In Proceedings of the
 20th ACM International Conference on Web Search and Data Mining (WSDM ’27),
 Hong Kong, February 15–19, 2027.
-
-Fill in the blank fields when the proceedings record is available.
 
 ```bibtex
 @inproceedings{shumaly2027phiape,
@@ -207,11 +237,6 @@ Fill in the blank fields when the proceedings record is available.
   series    = {WSDM '27},
   year      = {2027},
   month     = feb,
-  address   = {Hong Kong},
-  pages     = {},
-  articleno = {},
-  isbn      = {},
-  doi       = {},
-  url       = {}
+  address   = {Hong Kong}
 }
 ```

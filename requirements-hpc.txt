@@ -1,0 +1,12 @@
+# Training dependencies declared in the original Raven experiment folders.
+# This is the union of the UEA (v7, v28) and UCR (v9, v28) lists.
+# PyTorch 1.13.0 came from the Raven module stack.
+numpy<2
+pandas
+scikit-learn
+sktime
+aeon
+gdown
+matplotlib
+numexpr>=2.8.4
+bottleneck>=1.3.6
