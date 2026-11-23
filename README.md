@@ -1,13 +1,17 @@
 # phiAPE
 
-**Positional encoding for compact time-series Transformers**
+**Positional encoding for time-series Transformers**
 
-Temporal order matters in time-series classification. In a compact Transformer,
-some standard sinusoidal pairs can stay nearly constant across the input,
-using channels that could distinguish positions. **phiAPE** uses the known
-sequence length to allocate frequencies. The slowest pair spans half a cycle
-from the first sample to the last, and faster pairs capture finer positional
-scales. It adds no trainable parameters.
+Many real-world time series record only a few values at each time step.
+A three-axis accelerometer measures three values, for example, and an ECG
+from a single lead records one. A Transformer projects these inputs to an
+embedding of a chosen width. With a 32-dimensional embedding, only 16
+sine/cosine pairs encode position. If some barely change across the sequence,
+those pairs contribute little information about time order.
+
+**phiAPE** uses the known sequence length to allocate those frequencies.
+The slowest pair spans half a cycle from the first sample to the last, while
+faster pairs capture finer positional scales. It adds no trainable parameters.
 
 - **Time-series researchers** can reproduce the WSDM 2027 results from
   35,392 archived UEA and UCR runs or retrain the benchmarks.
