@@ -14,7 +14,8 @@ The slowest pair spans half a cycle from the first sample to the last, while
 faster pairs capture finer positional scales. It adds no trainable parameters.
 
 - **Time-series researchers** can reproduce the WSDM 2027 results from
-  35,392 archived UEA and UCR runs or retrain the benchmarks.
+  35,392 archived TST runs and retrain the TST benchmarks. Saved results from
+  600 ConvTran runs document the downstream comparison.
 - **Transformer developers** can reuse the [additive encoding](src/phiape_benchmarks/core.py)
   or try [phiRoPE](src/phiape_benchmarks/rotary_attention.py) in rotary attention.
   phiRoPE applies the same rule at the per-head width and rotates projected
@@ -58,6 +59,10 @@ it with `.venv\Scripts\Activate.ps1` in PowerShell. The reporting commands run
 on CPU and write their outputs to `outputs/reports/`. The
 [additive](reference_results/README.md) and [rotary](rotary_reference_results/README.md)
 reference results include provenance and run configurations.
+
+The [ConvTran downstream results](convtran_reference_results/README.md) provide
+600 saved run outcomes, paired comparisons, configurations, and statistical
+summaries for Figure 5.
 
 ## Retrain
 

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "archive": "UEA",
+  "datasets": 30,
+  "embedding_dimension": 32,
+  "methods": [
+    "tAPE",
+    "phiAPE"
+  ],
+  "recorded_method_names": {
+    "tAPE": "tAPE",
+    "RN-APE_c4": "phiAPE"
+  },
+  "repeats_per_method": 10,
+  "run_rows": 600,
+  "paired_repeat_rows": 300,
+  "inferential_unit": "Dataset mean accuracy over ten paired repeats",
+  "export_notes": "Internal protocol_id and loader_contract labels are omitted. Metric values, seeds, and recorded config_hash identifiers are preserved. The config_hash identifies the original recorded configuration. source_sha256 identifies the original file before exporting.",
+  "files": [
+    {
+      "path": "phiAPE_convtran_results.csv",
+      "sha256": "6c3077693b76e421c072e3d1738c22fb9b6705b2eaf18788c1337462540c4d77",
+      "source_sha256": "fb18968961eaccdabcbc15c9136f87312e94e9dfc7f1d008a10b291dbb40b880"
+    },
+    {
+      "path": "phiAPE_convtran_repeat_pairs.csv",
+      "sha256": "0efc8cb4199b2ca5134f7952b671a7024f85fffa768c404397f39986ae6d5827",
+      "source_sha256": "0efc8cb4199b2ca5134f7952b671a7024f85fffa768c404397f39986ae6d5827"
+    },
+    {
+      "path": "phiAPE_convtran_dataset_effects.csv",
+      "sha256": "85164d630b7284a69bccd134baa9bae822a866a8f4659017234753b169f18935",
+      "source_sha256": "85164d630b7284a69bccd134baa9bae822a866a8f4659017234753b169f18935"
+    },
+    {
+      "path": "phiAPE_convtran_experiment_summary.csv",
+      "sha256": "09df58624895fbabe7166bdbc7882b4c545aa8853c08bbdaf3afe407f75e913d",
+      "source_sha256": "09df58624895fbabe7166bdbc7882b4c545aa8853c08bbdaf3afe407f75e913d"
+    },
+    {
+      "path": "phiAPE_convtran_configuration.json",
+      "sha256": "d5e7df65caa36ec7ef5b7bbe45194d32959bea48625b07850de41707571ae48e",
+      "source_sha256": "ab12fd1f5530af2e0e863711fb0af1ba71274aea1e6e7943e96cf4700ec2b6b4"
+    },
+    {
+      "path": "phiAPE_convtran_two_sided_statistics.json",
+      "sha256": "8c04a194aa6a624d3111e4e56a0aa59d0810fa8fbe14fb167b8a255e146a28a4",
+      "source_sha256": "370ac86f462bfb9322c2707c3f529eba7d81b8cfd61a1913170955ee8f57ba1d"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "absolute_encoding_change_only": true,
+  "batch_size": 16,
+  "checkpoint": "minimum_validation_loss",
+  "config_hash": "768ef648128b9a55211d4e90676e66589f2ad4ba117ecbee5d333f0e7090366b",
+  "dim_feedforward": 256,
+  "dropout": 0.01,
+  "embedding_size": 32,
+  "epochs": 100,
+  "erpe_enabled": true,
+  "gradient_clip": 4.0,
+  "learning_rate": 0.001,
+  "loss": "CrossEntropyLoss(label_smoothing=0)",
+  "max_length": 512,
+  "methods": [
+    "tAPE",
+    "RN-APE_c4"
+  ],
+  "model_seed_start": 1234,
+  "normalization": "train-channel-zscore",
+  "num_heads": 8,
+  "optimizer": "RAdam",
+  "repeats": 10,
+  "rn_ape_c": 4.0,
+  "schema_version": 1,
+  "split_seed": 1234,
+  "sqrt_embedding": false,
+  "validation_fraction": 0.2,
+  "validation_interval": 1,
+  "weight_decay": 0.0
+}
