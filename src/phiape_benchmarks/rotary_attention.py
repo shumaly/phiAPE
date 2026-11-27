@@ -52,7 +52,6 @@ class RotaryMultiheadAttention(nn.MultiheadAttention):
     This benchmark uses sequence-first self-attention, including bidirectional
     attention and the original attention dropout. V is never rotated. There is
     no added absolute encoding, frequency rescaling, or learned rotary parameter.
-    The implementation uses PyTorch 1.13 operations for the original Raven job.
     """
 
     def __init__(self, embed_dim, num_heads, dropout=0.0, method="RoPE"):

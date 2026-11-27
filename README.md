@@ -59,11 +59,6 @@ on CPU and write their outputs to `outputs/reports/`. The
 [additive](reference_results/README.md) and [rotary](rotary_reference_results/README.md)
 reference results include provenance and run configurations.
 
-The original Raven training jobs used Python 3.9, PyTorch 1.13.0,
-CUDA 11.4, and cuDNN 8.2.4. [requirements-hpc.txt](requirements-hpc.txt)
-records the dependencies declared in the original job environments.
-Fresh training scores can vary across hardware and software versions.
-
 ## Retrain
 
 Start with one dataset and one seed to check your setup.
@@ -74,9 +69,11 @@ phiape-benchmarks run --rotary --archive ucr --dimension 32 --datasets ECG200 --
 
 The full comparisons use 30 UEA and 128 UCR datasets at widths 32 and 128.
 The [run protocol](src/phiape_benchmarks/protocol.py) records the shared
-training settings. Runs use CUDA when available, save after each repeat,
-and resume when you rerun the same command. Install `gdown` if the UEA
-loader needs to download a dataset from Google Drive.
+training settings. Training uses a CUDA GPU when PyTorch detects one and
+otherwise runs on the CPU. Runs save after each repeat and resume when you
+rerun the same command. Fresh scores can vary across hardware and software
+versions. Install `gdown` if the UEA loader needs to download a dataset from
+Google Drive.
 
 ```bash
 phiape-benchmarks run-all

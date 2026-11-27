@@ -23,7 +23,7 @@
     "validation_label_smoothing": 0.05,
     "scale_embedding": true
   },
-  "source": "HPC-APE v28 TST RoPE",
+  "source": "Archived UEA and UCR rotary benchmark runs",
   "implementation_sha256": "b3a7058a8a537721b692ceb37d648a9869c1f3f7fd80a095fe998c14cf2a150f",
   "configuration_sha256": "81c8b94293567df3ff899dc8243ba7414195afe8a9d1e6121d67d0e6da42ba8e",
   "configurations": [
